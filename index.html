@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Chrome Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --parchment: hsl(38, 35%, 95%);
+    --ink: hsl(25, 20%, 16%);
+    --muted: hsl(25, 12%, 52%);
+    --border: hsl(35, 18%, 84%);
+    --accent-h: 42;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--parchment);
+    font-family: 'Lora', serif;
+    color: var(--ink);
+  }
+
+  body {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  .shell {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 0 28px 80px;
+  }
+
+  /* ── HEADER ─────────────────────────────────── */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 52px 0 30px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .header-left .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: hsl(var(--accent-h), 50%, 48%);
+    margin-bottom: 8px;
+    transition: color 1.2s ease;
+  }
+
+  .header-left h1 {
+    font-size: clamp(26px, 3.5vw, 40px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+  }
+
+  .header-left h1 em {
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .header-right {
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* ── GRID ─────────────────────────────────── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 44px;
+    align-items: start;
+  }
+
+  /* ── MOBILE TOGGLE ─────────────────────────────────── */
+  .mob-tabs {
+    display: none;
+  }
+
+  @media (max-width: 680px) {
+    .grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; gap: 14px; padding: 20px 0 16px; margin-bottom: 16px; }
+    .header-right { text-align: left; font-size: 11px; }
+    .header-left .eyebrow { font-size: 9.5px; margin-bottom: 4px; }
+    .header-left h1 { font-size: 42px; line-height: 1.1; }
+
+    textarea { min-height: 220px; font-size: 15px; }
+
+    /* Tab bar */
+    .mob-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: hsl(38, 30%, 91%);
+    }
+
+    .mob-tab {
+      flex: 1;
+      font-family: 'DM Mono', monospace;
+      font-size: 11.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 11px 0;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      transition: background 0.2s, color 0.2s;
+      border-radius: 0;
+    }
+
+    .mob-tab.active {
+      background: hsl(38, 40%, 98%);
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* Hide/show panels based on active tab */
+    .panel-write,
+    .panel-paint {
+      transition: opacity 0.3s ease;
+    }
+
+    .panel-write.mob-hidden,
+    .panel-paint.mob-hidden {
+      display: none;
+    }
+
+    /* Bigger tap targets */
+    button { padding: 13px 18px; font-size: 13px; }
+
+    .shell { padding: 0 18px 60px; }
+    header { padding: 32px 0 22px; margin-bottom: 28px; }
+  }
+
+  .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  /* ── TEXTAREA ─────────────────────────────────── */
+  textarea {
+    width: 100%;
+    min-height: 340px;
+    padding: 20px 22px;
+    background: hsl(38, 40%, 98%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-family: 'Lora', serif;
+    font-size: 15.5px;
+    line-height: 1.85;
+    color: var(--ink);
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.04);
+    display: block;
+  }
+
+  textarea::placeholder {
+    color: hsl(25, 12%, 62%);
+    font-style: italic;
+  }
+
+  textarea:focus {
+    border-color: hsl(var(--accent-h), 45%, 65%);
+    box-shadow: 0 0 0 3px hsl(var(--accent-h), 60%, 90%), inset 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  /* ── ACTIONS ─────────────────────────────────── */
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  button {
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.07em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.15s, filter 0.15s, opacity 0.3s;
+    padding: 11px 18px;
+  }
+
+  button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+  }
+
+  button:disabled { cursor: not-allowed; opacity: 0.4; }
+
+  .btn-primary {
+    flex: 1;
+    background: hsl(var(--accent-h), 55%, 52%);
+    color: white;
+    font-weight: 500;
+    transition: background 1s ease, transform 0.15s, filter 0.15s;
+  }
+
+  .btn-secondary {
+    background: hsl(38, 30%, 91%);
+    color: hsl(25, 18%, 35%);
+    border: 1px solid var(--border);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.15s, filter 0.15s;
+  }
+
+  .btn-secondary.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* ── CANVAS ─────────────────────────────────── */
+  .canvas-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 28px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+    background: hsl(38, 35%, 93%);
+  }
+
+  canvas { display: block; width: 100%; height: 100%; transition: opacity 0.5s ease; }
+  canvas.fading { opacity: 0; }
+
+  .canvas-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+
+  .canvas-placeholder .ring {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1.5px dashed hsl(35, 20%, 72%);
+    animation: breathe 3s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%,100% { transform: scale(1); opacity: 0.45; }
+    50%      { transform: scale(1.1); opacity: 0.85; }
+  }
+
+  .canvas-placeholder span {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: hsl(25, 12%, 60%);
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="header-left">
+      <div class="eyebrow" id="eyebrow">Your Chrome Journal</div>
+      <h1>How does today<br><em>feel</em> in color?</h1>
+    </div>
+    <div class="header-right" id="dateStr"></div>
+  </header>
+
+  <!-- Mobile tab toggle (hidden on desktop) -->
+  <div class="mob-tabs">
+    <button class="mob-tab active" id="tabWrite">✏️ Write</button>
+    <button class="mob-tab" id="tabPaint">🎨 Colors</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT: writing -->
+    <div class="panel-write">
+      <span class="label">Today's entry</span>
+      <textarea id="journal" placeholder="Paint your thoughts, one word at a time."></textarea>
+      <div class="actions">
+        <button class="btn-primary" id="btnPaint" disabled>Paint my entry →</button>
+        <button class="btn-ghost" id="btnClear">Clear</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: canvas -->
+    <div class="panel-paint">
+      <span class="label">today in color</span>
+      <div class="canvas-wrap">
+        <canvas id="wc"></canvas>
+        <div class="canvas-placeholder" id="placeholder">
+          <div class="ring"></div>
+          <span>watch as your colors bloom</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-secondary" id="btnSave">↓ Save PNG</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── AI SENTENCE ANALYSIS ─────────────────────────────────────
+// Cache so we don't re-analyze unchanged sentences
+const sentenceCache = new Map();
+
+function splitSentences(text) {
+  return text.split(/(?<=[.!?…\n])\s*/).map(s=>s.trim()).filter(s=>s.length>3);
+}
+
+async function analyzeSentenceAI(sentence) {
+  if (sentenceCache.has(sentence)) return sentenceCache.get(sentence);
+
+  const systemPrompt = `You are an emotional color analyst for a watercolor journal app.
+Given a journal sentence, identify the dominant emotional tone and return a color as HSL values.
+
+Emotion → Color guide (use as reference, not strict rules — context matters most):
+- Joy, excitement, delight → warm yellows/golds (h: 40–55, s: 85–98, l: 52–62)
+- Love, romance, tenderness → rose/coral pink (h: 330–345, s: 80–92, l: 55–62)
+- Sadness, grief, loss, longing → deep blue/indigo (h: 215–235, s: 65–82, l: 32–45)
+- Anger, frustration, bitterness → crimson/red (h: 0–15, s: 80–95, l: 36–48)
+- Anxiety, pressure, stress, overwhelm → sharp yellow-green (h: 68–88, s: 75–90, l: 36–46)
+- Calm, peace, contentment → teal/mint (h: 170–200, s: 60–75, l: 45–55)
+- Guilt, shame, regret → dark muddy red-brown (h: 8–20, s: 60–75, l: 32–42)
+- Disappointment, disillusionment → dusty blue-gray (h: 210–225, s: 40–58, l: 38–48)
+- Disconnection, feeling cold/transactional → cold slate (h: 200–215, s: 35–50, l: 40–50)
+- Loneliness, isolation → deep steel blue (h: 215–228, s: 55–70, l: 36–44)
+- Nostalgia, bittersweet memory → warm amber (h: 25–35, s: 65–82, l: 44–54)
+- Hope, optimism → vivid mint green (h: 148–162, s: 68–80, l: 42–50)
+- Wonder, inspiration, awe → vivid violet (h: 265–285, s: 75–88, l: 48–58)
+- Burden, obligation, responsibility → olive-gray (h: 65–78, s: 45–62, l: 34–44)
+- Pride, accomplishment → golden amber (h: 36–46, s: 80–90, l: 44–52)
+- Vulnerability, rawness → soft blush (h: 340–350, s: 55–68, l: 52–60)
+- Numbness, emptiness → pale gray-blue (h: 205–218, s: 20–40, l: 50–60)
+- Complexity, ambivalence, being torn → muted violet-gray (h: 248–262, s: 38–52, l: 40–50)
+
+Consider the WHOLE sentence's meaning, not individual words. "I'm getting married but it wasn't the marriage I thought I would get" is grief/disappointment, not joy.
+
+Respond ONLY with valid JSON, no other text:
+{"h": <0-360>, "s": <0-100>, "l": <20-75>, "emotion": "<short label>"}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 100,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Sentence: "${sentence}"` }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.[0]?.text?.trim() || '{}';
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const h = parseFloat(parsed.h), s = parseFloat(parsed.s), l = parseFloat(parsed.l);
+    if (isNaN(h) || isNaN(s) || isNaN(l)) throw new Error('Bad color values from AI');
+    const color = {
+      h: Math.max(0, Math.min(360, h)),
+      s: Math.max(0, Math.min(100, s)),
+      l: Math.max(10, Math.min(90, l)),
+      emotion: parsed.emotion || '',
+      w: 1.2
+    };
+    sentenceCache.set(sentence, color);
+    return color;
+  } catch(e) {
+    console.warn('AI analysis failed for:', sentence, e);
+    sentenceCache.set(sentence, null);
+    return null;
+  }
+}
+
+// ─── SEEDED RNG ───────────────────────────────────────────────
+function makeRng(seed) {
+  let s = seed||42;
+  return ()=>{ s=(s*16807)%2147483647; return (s-1)/2147483646; };
+}
+
+// ─── WATERCOLOR PAINT ─────────────────────────────────────────
+function paint(canvas, colors) {
+  const dpr = window.devicePixelRatio||1;
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  // Parchment base
+  const base = ctx.createLinearGradient(0,0,W,H);
+  base.addColorStop(0,'hsl(38,38%,94%)');
+  base.addColorStop(1,'hsl(32,28%,90%)');
+  ctx.fillStyle=base; ctx.fillRect(0,0,W,H);
+
+  const valid = colors.filter(c => c && typeof c.h==='number' && typeof c.s==='number' && typeof c.l==='number' && !isNaN(c.h) && !isNaN(c.s) && !isNaN(c.l));
+  if (!valid.length) return;
+
+  const seed = valid.reduce((a,c)=>a+Math.round(c.h*100)+Math.round(c.s),1337);
+  const rng = makeRng(seed);
+
+  // 1. Full-canvas diagonal base wash — blends ALL colors across the whole surface
+  const diagGrad = ctx.createLinearGradient(0, 0, W, H);
+  valid.forEach((c, i) => {
+    const stop = valid.length === 1 ? 0.5 : i / (valid.length - 1);
+    diagGrad.addColorStop(Math.max(0, Math.min(1, stop)), `hsla(${c.h},${c.s}%,${c.l}%,0.38)`);
+  });
+  ctx.fillStyle = diagGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Second diagonal in opposite direction for cross-blending
+  const diagGrad2 = ctx.createLinearGradient(W, 0, 0, H);
+  valid.forEach((c, i) => {
+    const stop = valid.length === 1 ? 0.5 : (valid.length - 1 - i) / (valid.length - 1);
+    diagGrad2.addColorStop(Math.max(0, Math.min(1, stop)), `hsla(${c.h},${c.s}%,${c.l}%,0.18)`);
+  });
+  ctx.fillStyle = diagGrad2;
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. Large overlapping washes — each color bleeds far beyond its zone
+  for (let i=0;i<valid.length;i++) {
+    const c=valid[i];
+    const p=valid.length===1?0.5:i/(valid.length-1);
+    for (let b=0;b<8;b++) {
+      // Spread centers widely — not just in their "zone"
+      const cx=W*(0.1 + rng()*0.8);
+      const cy=H*(0.05 + rng()*0.9);
+      // Very large radii so colors overlap neighbors
+      const rx=W*(0.40+rng()*0.45);
+      const ry=H*(0.35+rng()*0.40);
+      const r=Math.max(rx,ry);
+      const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+      g.addColorStop(0,   `hsla(${c.h},${c.s}%,${c.l}%,0.28)`);
+      g.addColorStop(0.35,`hsla(${c.h},${c.s}%,${Math.min(c.l+4,100)}%,0.16)`);
+      g.addColorStop(0.7, `hsla(${c.h},${Math.max(c.s-5,0)}%,${Math.min(c.l+8,100)}%,0.06)`);
+      g.addColorStop(1,   `hsla(${c.h},${Math.max(c.s-10,0)}%,${Math.min(c.l+12,100)}%,0)`);
+      ctx.save();
+      ctx.translate(cx,cy); ctx.scale(rx/r,ry/r); ctx.translate(-cx,-cy);
+      ctx.beginPath(); ctx.ellipse(cx,cy,r,r,0,0,Math.PI*2);
+      ctx.fillStyle=g; ctx.fill(); ctx.restore();
+    }
+  }
+
+  // 3. Aggressive wet-on-wet blends — multiple passes, full canvas spread
+  for (let pass=0; pass<3; pass++) {
+    for (let i=0;i<valid.length-1;i++) {
+      const c1=valid[i], c2=valid[i+1];
+      let dh=c2.h-c1.h;
+      if(dh>180)dh-=360; if(dh<-180)dh+=360;
+      const mh=(c1.h+dh*0.5+360)%360;
+      const ms=(c1.s+c2.s)/2, ml=(c1.l+c2.l)/2;
+      // Blend zones scattered all over canvas, not just between sentence positions
+      const mx=W*(0.1+rng()*0.8);
+      const my=H*(0.05+rng()*0.9);
+      const brad = W*(0.35+rng()*0.40);
+      const g=ctx.createRadialGradient(mx,my,0,mx,my,brad);
+      g.addColorStop(0,  `hsla(${mh},${ms}%,${ml}%,0.22)`);
+      g.addColorStop(0.5,`hsla(${mh},${ms}%,${Math.min(ml+5,100)}%,0.10)`);
+      g.addColorStop(1,  `hsla(${mh},${ms}%,${Math.min(ml+10,100)}%,0)`);
+      ctx.beginPath();
+      ctx.ellipse(mx,my,brad,brad*(0.6+rng()*0.6),rng()*Math.PI,0,Math.PI*2);
+      ctx.fillStyle=g; ctx.fill();
+    }
+  }
+
+  // 4. Also blend non-adjacent colors together for richer mixing
+  if (valid.length >= 3) {
+    for (let i=0;i<valid.length-2;i++) {
+      const c1=valid[i], c2=valid[i+2];
+      let dh=c2.h-c1.h;
+      if(dh>180)dh-=360; if(dh<-180)dh+=360;
+      const mh=(c1.h+dh*0.5+360)%360;
+      const ms=(c1.s+c2.s)/2, ml=(c1.l+c2.l)/2;
+      const mx=W*(0.15+rng()*0.7);
+      const my=H*(0.1+rng()*0.8);
+      const brad=W*(0.38+rng()*0.35);
+      const g=ctx.createRadialGradient(mx,my,0,mx,my,brad);
+      g.addColorStop(0,  `hsla(${mh},${ms}%,${ml}%,0.15)`);
+      g.addColorStop(1,  `hsla(${mh},${ms}%,${Math.min(ml+10,100)}%,0)`);
+      ctx.beginPath();
+      ctx.ellipse(mx,my,brad,brad*(0.5+rng()*0.7),rng()*Math.PI,0,Math.PI*2);
+      ctx.fillStyle=g; ctx.fill();
+    }
+  }
+
+  // 5. Soft bloom halos
+  for (const c of valid) {
+    const bx=W*(0.1+rng()*0.8), by=H*(0.1+rng()*0.8);
+    const br=W*(0.10+rng()*0.18);
+    const g=ctx.createRadialGradient(bx,by,0,bx,by,br);
+    g.addColorStop(0,`hsla(${c.h},${Math.min(c.s+5,100)}%,${Math.min(c.l+18,92)}%,0.50)`);
+    g.addColorStop(0.5,`hsla(${c.h},${c.s}%,${Math.min(c.l+8,92)}%,0.20)`);
+    g.addColorStop(1,`hsla(${c.h},${c.s}%,${c.l}%,0)`);
+    ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill();
+  }
+
+  // 6. Pigment granulation
+  ctx.save(); ctx.globalAlpha=0.04;
+  for (let i=0;i<2200;i++) {
+    const x=rng()*W, y=rng()*H, r=0.4+rng()*1.6;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=`hsl(${18+rng()*30},28%,${16+rng()*28}%)`;
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // 7. Paper grain
+  ctx.save(); ctx.globalAlpha=0.025;
+  for (let i=0;i<3500;i++) {
+    const x=rng()*W, y=rng()*H;
+    ctx.fillStyle=rng()>0.5?'rgba(255,255,255,0.9)':'rgba(0,0,0,0.5)';
+    ctx.fillRect(x,y,1,1);
+  }
+  ctx.restore();
+
+  // 8. Vignette
+  const vig=ctx.createRadialGradient(W/2,H/2,H*0.28,W/2,H/2,H*0.9);
+  vig.addColorStop(0,'rgba(0,0,0,0)');
+  vig.addColorStop(1,'rgba(18,12,8,0.18)');
+  ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+}
+
+// ─── OFFSCREEN PAINT — POLAROID EXPORT ────────────────────────
+function paintOffscreen(canvas, colors) {
+  // Polaroid dimensions: square image area + wider bottom border for date
+  // Total canvas: 1000 x 1160 (image: 880x880, border: 60 sides, 60 top, 220 bottom)
+  const CW = canvas.width;   // 1000
+  const CH = canvas.height;  // 1160
+
+  const ctx = canvas.getContext('2d');
+  const border = Math.round(CW * 0.06);    // 60px side/top border
+  const bottom  = Math.round(CW * 0.22);   // 220px bottom label area
+  const IW = CW - border * 2;              // image width
+  const IH = CH - border - bottom;         // image height
+
+  // ── Background / shadow ──
+  ctx.fillStyle = '#e8e4de';
+  ctx.fillRect(0, 0, CW, CH);
+
+  // Soft drop shadow behind polaroid card
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.22)';
+  ctx.shadowBlur = 48;
+  ctx.shadowOffsetX = 6;
+  ctx.shadowOffsetY = 10;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, CW, CH);
+  ctx.restore();
+
+  // ── Polaroid card (whole canvas is the card) ──
+  // White card background
+  ctx.fillStyle = '#faf9f6';
+  ctx.fillRect(0, 0, CW, CH);
+
+  // Slight warm tint on card edges
+  const cardEdge = ctx.createLinearGradient(0,0,0,CH);
+  cardEdge.addColorStop(0, 'rgba(255,248,235,0.4)');
+  cardEdge.addColorStop(1, 'rgba(240,230,215,0.3)');
+  ctx.fillStyle = cardEdge;
+  ctx.fillRect(0, 0, CW, CH);
+
+  // ── Paint watercolor into the image area ──
+  const valid = (colors||[]).filter(c => c && typeof c.h==='number' && typeof c.s==='number' && typeof c.l==='number' && !isNaN(c.h) && !isNaN(c.s) && !isNaN(c.l));
+
+  // Clip to image area
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(border, border, IW, IH);
+  ctx.clip();
+
+  // Parchment base inside image
+  const base = ctx.createLinearGradient(border, border, border+IW, border+IH);
+  base.addColorStop(0,'hsl(38,38%,94%)');
+  base.addColorStop(1,'hsl(32,28%,90%)');
+  ctx.fillStyle=base; ctx.fillRect(border, border, IW, IH);
+
+  if (valid.length) {
+    const seed = valid.reduce((a,c)=>a+Math.round(c.h*100)+Math.round(c.s),1337);
+    const rng = makeRng(seed);
+
+    ctx.translate(border, border);
+    const W = IW, H = IH;
+
+    // Full diagonal base wash
+    const diagGrad = ctx.createLinearGradient(0,0,W,H);
+    valid.forEach((c,i) => {
+      const stop = valid.length===1?0.5:i/(valid.length-1);
+      diagGrad.addColorStop(Math.max(0,Math.min(1,stop)),`hsla(${c.h},${c.s}%,${c.l}%,0.38)`);
+    });
+    ctx.fillStyle=diagGrad; ctx.fillRect(0,0,W,H);
+
+    const diagGrad2 = ctx.createLinearGradient(W,0,0,H);
+    valid.forEach((c,i) => {
+      const stop = valid.length===1?0.5:(valid.length-1-i)/(valid.length-1);
+      diagGrad2.addColorStop(Math.max(0,Math.min(1,stop)),`hsla(${c.h},${c.s}%,${c.l}%,0.18)`);
+    });
+    ctx.fillStyle=diagGrad2; ctx.fillRect(0,0,W,H);
+
+    // Large overlapping washes
+    for (let i=0;i<valid.length;i++) {
+      const c=valid[i];
+      for (let b=0;b<8;b++) {
+        const cx=W*(0.1+rng()*0.8), cy=H*(0.05+rng()*0.9);
+        const rx=W*(0.40+rng()*0.45), ry=H*(0.35+rng()*0.40);
+        const r=Math.max(rx,ry);
+        const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+        g.addColorStop(0,  `hsla(${c.h},${c.s}%,${c.l}%,0.28)`);
+        g.addColorStop(0.35,`hsla(${c.h},${c.s}%,${Math.min(c.l+4,100)}%,0.16)`);
+        g.addColorStop(0.7, `hsla(${c.h},${Math.max(c.s-5,0)}%,${Math.min(c.l+8,100)}%,0.06)`);
+        g.addColorStop(1,  `hsla(${c.h},${Math.max(c.s-10,0)}%,${Math.min(c.l+12,100)}%,0)`);
+        ctx.save();
+        ctx.translate(cx,cy); ctx.scale(rx/r,ry/r); ctx.translate(-cx,-cy);
+        ctx.beginPath(); ctx.ellipse(cx,cy,r,r,0,0,Math.PI*2);
+        ctx.fillStyle=g; ctx.fill(); ctx.restore();
+      }
+    }
+
+    // Multi-pass wet blends
+    for (let pass=0;pass<3;pass++) {
+      for (let i=0;i<valid.length-1;i++) {
+        const c1=valid[i],c2=valid[i+1];
+        let dh=c2.h-c1.h;
+        if(dh>180)dh-=360; if(dh<-180)dh+=360;
+        const mh=(c1.h+dh*0.5+360)%360, ms=(c1.s+c2.s)/2, ml=(c1.l+c2.l)/2;
+        const mx=W*(0.1+rng()*0.8), my=H*(0.05+rng()*0.9);
+        const brad=W*(0.35+rng()*0.40);
+        const g=ctx.createRadialGradient(mx,my,0,mx,my,brad);
+        g.addColorStop(0,  `hsla(${mh},${ms}%,${ml}%,0.22)`);
+        g.addColorStop(0.5,`hsla(${mh},${ms}%,${Math.min(ml+5,100)}%,0.10)`);
+        g.addColorStop(1,  `hsla(${mh},${ms}%,${Math.min(ml+10,100)}%,0)`);
+        ctx.beginPath();
+        ctx.ellipse(mx,my,brad,brad*(0.6+rng()*0.6),rng()*Math.PI,0,Math.PI*2);
+        ctx.fillStyle=g; ctx.fill();
+      }
+    }
+
+    // Non-adjacent blends
+    if (valid.length>=3) {
+      for (let i=0;i<valid.length-2;i++) {
+        const c1=valid[i],c2=valid[i+2];
+        let dh=c2.h-c1.h;
+        if(dh>180)dh-=360; if(dh<-180)dh+=360;
+        const mh=(c1.h+dh*0.5+360)%360, ms=(c1.s+c2.s)/2, ml=(c1.l+c2.l)/2;
+        const mx=W*(0.15+rng()*0.7), my=H*(0.1+rng()*0.8);
+        const brad=W*(0.38+rng()*0.35);
+        const g=ctx.createRadialGradient(mx,my,0,mx,my,brad);
+        g.addColorStop(0,`hsla(${mh},${ms}%,${ml}%,0.15)`);
+        g.addColorStop(1,`hsla(${mh},${ms}%,${Math.min(ml+10,100)}%,0)`);
+        ctx.beginPath();
+        ctx.ellipse(mx,my,brad,brad*(0.5+rng()*0.7),rng()*Math.PI,0,Math.PI*2);
+        ctx.fillStyle=g; ctx.fill();
+      }
+    }
+
+    // Blooms
+    for (const c of valid) {
+      const bx=W*(0.1+rng()*0.8), by=H*(0.1+rng()*0.8);
+      const br=W*(0.10+rng()*0.18);
+      const g=ctx.createRadialGradient(bx,by,0,bx,by,br);
+      g.addColorStop(0,`hsla(${c.h},${Math.min(c.s+5,100)}%,${Math.min(c.l+18,92)}%,0.50)`);
+      g.addColorStop(0.5,`hsla(${c.h},${c.s}%,${Math.min(c.l+8,92)}%,0.20)`);
+      g.addColorStop(1,`hsla(${c.h},${c.s}%,${c.l}%,0)`);
+      ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2);
+      ctx.fillStyle=g; ctx.fill();
+    }
+    // Granulation
+    ctx.save(); ctx.globalAlpha=0.045;
+    for (let i=0;i<3500;i++) {
+      const x=rng()*W, y=rng()*H, r=0.4+rng()*1.6;
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fillStyle=`hsl(${18+rng()*30},28%,${16+rng()*28}%)`;
+      ctx.fill();
+    }
+    ctx.restore();
+    // Grain
+    ctx.save(); ctx.globalAlpha=0.025;
+    for (let i=0;i<6000;i++) {
+      const x=rng()*W, y=rng()*H;
+      ctx.fillStyle=rng()>0.5?'rgba(255,255,255,0.9)':'rgba(0,0,0,0.5)';
+      ctx.fillRect(x,y,1,1);
+    }
+    ctx.restore();
+    // Vignette
+    const vig=ctx.createRadialGradient(W/2,H/2,H*0.28,W/2,H/2,H*0.9);
+    vig.addColorStop(0,'rgba(0,0,0,0)');
+    vig.addColorStop(1,'rgba(18,12,8,0.22)');
+    ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+  }
+
+  ctx.restore(); // end image clip+translate
+
+  // ── Subtle inner shadow on image edge (depth) ──
+  ctx.save();
+  const inset = ctx.createLinearGradient(border, border, border, border+28);
+  inset.addColorStop(0,'rgba(0,0,0,0.08)');
+  inset.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = inset;
+  ctx.fillRect(border, border, IW, 28);
+  ctx.restore();
+
+  // ── Bottom label area ──
+  const labelY = border + IH; // top of label area
+
+  // Thin divider line
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(border, labelY);
+  ctx.lineTo(border + IW, labelY);
+  ctx.stroke();
+
+  // Date string — handwriting-style font stack, centered
+  const dateStr = new Date().toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric'
+  }).toLowerCase();
+
+  const labelCenterX = CW / 2;
+  const labelCenterY = labelY + bottom / 2;
+
+  // "chromia" small label
+  ctx.save();
+  ctx.font = `${Math.round(CW*0.028)}px 'DM Mono', 'Courier New', monospace`;
+  ctx.fillStyle = 'rgba(80,60,45,0.35)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('your chrome journal', labelCenterX, labelCenterY - Math.round(CW*0.04));
+  ctx.restore();
+
+  // Date — main label
+  ctx.save();
+  ctx.font = `italic ${Math.round(CW*0.038)}px Georgia, 'Times New Roman', serif`;
+  ctx.fillStyle = 'rgba(55,38,28,0.75)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(dateStr, labelCenterX, labelCenterY + Math.round(CW*0.012));
+  ctx.restore();
+
+  // ── Outer card border ──
+  ctx.strokeStyle = 'rgba(0,0,0,0.07)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, CW-2, CH-2);
+}
+
+
+const ta          = document.getElementById('journal');
+const canvasEl    = document.getElementById('wc');
+const placeholder = document.getElementById('placeholder');
+const btnPaint    = document.getElementById('btnPaint');
+const btnSave     = document.getElementById('btnSave');
+const btnClear    = document.getElementById('btnClear');
+const eyebrow     = document.getElementById('eyebrow');
+
+document.getElementById('dateStr').textContent = new Date().toLocaleDateString('en-US',{
+  weekday:'long', year:'numeric', month:'long', day:'numeric'
+});
+
+let paintTimer = null;
+let isAnalyzing = false;
+let lastColors = [];
+
+function setLoadingState(loading) {
+  isAnalyzing = loading;
+  btnPaint.textContent = loading ? 'Reading…' : 'Paint my entry →';
+  btnPaint.style.opacity = loading ? '0.7' : '1';
+}
+
+async function doPaint() {
+  const text = ta.value.trim();
+  if (!text || isAnalyzing) return;
+
+  const sentences = splitSentences(text);
+  if (!sentences.length) return;
+
+  setLoadingState(true);
+
+  try {
+    const colors = await Promise.all(sentences.map(s => analyzeSentenceAI(s)));
+    lastColors = colors;
+
+    const valid = colors.filter(Boolean);
+    const hasColor = valid.length > 0;
+
+    canvasEl.classList.add('fading');
+    setTimeout(() => {
+      paint(canvasEl, colors);
+      canvasEl.classList.remove('fading');
+    }, 180);
+
+    placeholder.style.opacity = hasColor ? '0' : '1';
+    btnSave.classList.toggle('visible', hasColor);
+
+    if (hasColor) {
+      const dom = valid[0];
+      const h = Math.round(dom.h);
+      document.documentElement.style.setProperty('--accent-h', h);
+      eyebrow.style.color = `hsl(${h},50%,48%)`;
+      btnPaint.style.background = `hsl(${h},55%,52%)`;
+      // Auto-switch to colors view on mobile removed — user controls tab
+    }
+  } catch(e) {
+    console.error('Paint failed:', e);
+  } finally {
+    setLoadingState(false);
+  }
+}
+
+// ── MOBILE TABS ──────────────────────────────────────────────
+const tabWrite   = document.getElementById('tabWrite');
+const tabPaint   = document.getElementById('tabPaint');
+const panelWrite = document.querySelector('.panel-write');
+const panelPaint = document.querySelector('.panel-paint');
+
+function isMobile() { return window.innerWidth <= 680; }
+
+function setTab(tab) {
+  if (!isMobile()) return;
+  if (tab === 'write') {
+    tabWrite.classList.add('active');
+    tabPaint.classList.remove('active');
+    panelWrite.classList.remove('mob-hidden');
+    panelPaint.classList.add('mob-hidden');
+  } else {
+    tabPaint.classList.add('active');
+    tabWrite.classList.remove('active');
+    panelPaint.classList.remove('mob-hidden');
+    panelWrite.classList.add('mob-hidden');
+    // Repaint canvas now that it's visible and has proper dimensions
+    setTimeout(() => { if(lastColors.length) paint(canvasEl, lastColors); }, 50);
+  }
+}
+
+tabWrite.addEventListener('click', () => setTab('write'));
+tabPaint.addEventListener('click', () => setTab('paint'));
+
+// Auto-switch to colors view after painting on mobile
+
+ta.addEventListener('input', () => {
+  const val = ta.value;
+  btnPaint.disabled = val.trim().length < 10;
+  const lastChar = val[val.length - 1];
+  if (['.','!','?','\n','…'].includes(lastChar)) {
+    clearTimeout(paintTimer);
+    paintTimer = setTimeout(doPaint, 700);
+  }
+});
+
+btnPaint.addEventListener('click', doPaint);
+
+btnSave.addEventListener('click', () => {
+  // Render to a fresh offscreen canvas at 2x resolution for crisp export
+  const offscreen = document.createElement('canvas');
+  offscreen.width = 1000;
+  offscreen.height = 1160;
+  // Temporarily override offsetWidth/Height for the paint function
+  const origGetDesc = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
+  // Paint directly using a modified approach for the offscreen canvas
+  paintOffscreen(offscreen, lastColors);
+
+  offscreen.toBlob((blob) => {
+    if (!blob) { alert('Nothing to save yet — paint your entry first!'); return; }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `your-chrome-journal-${new Date().toISOString().slice(0,10)}.png`;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, 'image/png');
+});
+
+btnClear.addEventListener('click', () => {
+  ta.value = '';
+  lastColors = [];
+  sentenceCache.clear();
+  btnPaint.disabled = true;
+  btnSave.classList.remove('visible');
+  placeholder.style.opacity = '1';
+  document.documentElement.style.setProperty('--accent-h','42');
+  eyebrow.style.color = '';
+  btnPaint.style.background = '';
+  btnPaint.textContent = 'Paint my entry →';
+  paint(canvasEl, []);
+  ta.focus();
+});
+
+window.addEventListener('load', () => paint(canvasEl, []));
+window.addEventListener('resize', () => { if(lastColors.length) paint(canvasEl, lastColors); });
+</script>
+</body>
+</html>
