@@ -9,6 +9,8 @@ export default async function handler(req, res) {
   try {
     const { model, max_tokens, system, messages } = req.body;
 
+    console.log('Request body:', JSON.stringify({ model, max_tokens, system: system?.slice(0,50), messages }));
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -20,8 +22,10 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+    console.log('Anthropic response:', JSON.stringify(data));
     return res.status(response.status).json(data);
   } catch (err) {
+    console.log('Error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 }
