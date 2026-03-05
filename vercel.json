@@ -1,5 +1,7 @@
 {
-  "api": {
-    "bodyParser": false
+  "functions": {
+    "api/proxy.js": {
+      "memory": 128
+    }
   }
 }
