@@ -9,7 +9,9 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { model, max_tokens, system, messages } = req.body;
+    // Parse body if it's a string
+    const payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { model, max_tokens, system, messages } = payload;
 
     const body = JSON.stringify({ model, max_tokens, system, messages });
 
@@ -36,5 +38,14 @@ module.exports = async function handler(req, res) {
       request.end();
     });
 
-    const data = JSON.parse(result.body);
-    return
+    // Return raw text if not valid JSON
+    try {
+      const data = JSON.parse(result.body);
+      return res.status(result.status).json(data);
+    } catch(e) {
+      return res.status(result.status).send(result.body);
+    }
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
