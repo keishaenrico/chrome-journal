@@ -377,7 +377,7 @@ Respond ONLY with valid JSON, no other text:
 {"h": <0-360>, "s": <0-100>, "l": <20-75>, "emotion": "<short label>"}`;
 
   try {
-    const res = await fetch('/api/paint', {
+    const res = await fetch('/api/proxy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
