@@ -1,6 +1,6 @@
 const https = require('https');
 
-module.exports = async (req, res) => {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -15,7 +15,8 @@ module.exports = async (req, res) => {
       req.on('error', reject);
     });
 
-    const body = rawBody;
+    if (!rawBody) return res.status(400).json({ error: 'Empty body' });
+
     const options = {
       hostname: 'api.anthropic.com',
       path: '/v1/messages',
@@ -24,7 +25,7 @@ module.exports = async (req, res) => {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
-        'Content-Length': Buffer.byteLength(body)
+        'Content-Length': Buffer.byteLength(rawBody)
       }
     };
 
@@ -35,7 +36,7 @@ module.exports = async (req, res) => {
         resp.on('end', () => resolve({ status: resp.statusCode, body: data }));
       });
       r.on('error', reject);
-      r.write(body);
+      r.write(rawBody);
       r.end();
     });
 
@@ -47,6 +48,8 @@ module.exports = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-};
+}
 
-module.exports.config = { api: { bodyParser: false } };
+handler.config = { api: { bodyParser: false } };
+
+module.exports = handler;
