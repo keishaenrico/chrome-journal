@@ -8,7 +8,6 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    // Manually read the raw body
     const rawBody = await new Promise((resolve, reject) => {
       let data = '';
       req.on('data', chunk => data += chunk);
@@ -16,8 +15,7 @@ module.exports = async (req, res) => {
       req.on('error', reject);
     });
 
-    const body = rawBody; // already a string, pass directly
-
+    const body = rawBody;
     const options = {
       hostname: 'api.anthropic.com',
       path: '/v1/messages',
@@ -50,3 +48,5 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+module.exports.config = { api: { bodyParser: false } };
